@@ -1,9 +1,9 @@
 #
 # Basic yaml code to get the ESP32-2432S028R display to work in ESPHome.
 #
-# This yaml displays two rectangles acting as binary touch sensors inside of Home Assistant.
+# This yaml displays four rectangles acting as binary touch sensors inside of Home Assistant.
 #
-# Written by Jonny Bergdahl
+# Originally written by Jonny Bergdahl
 # - [GitHub](https://github.com/jonnybergdahl)
 # - [Twitter](https://twitter.com/jonnybergdahl)
 # - [YouTube](https://www.youtube.com/jonnybergdahl)
@@ -73,7 +73,7 @@ font:
   - file: 'fonts/Arimo-Regular.ttf'
     id: arimo84
     size: 84
-    glyphs: "ABC"
+    glyphs: "ABCD"
 
 # Create a Home Assistant blue color
 color:
@@ -90,7 +90,7 @@ light:
     id: backlight
     restore_mode: ALWAYS_ON
 
-# Setup two binary sensors for the two areas for touch
+# Setup four binary sensors for the four areas for touch
 binary_sensor:
   - platform: touchscreen
     name: Button A
@@ -112,6 +112,13 @@ binary_sensor:
     x_max: 100
     y_min: 220
     y_max: 300
+
+  - platform: touchscreen
+    name: Button D
+    x_min: 140
+    x_max: 220
+    y_min: 120
+    y_max: 200
 
 # ============================================================ 
 # Hardware related setup
@@ -135,7 +142,7 @@ output:
 
 # Setup the ili9xxx platform
 #
-# Display is used as 240x320 by default so we rotate it to 90°
+# Display is used as 240x320 by default - no need to rotate it to 90°
 #
 # We print date and time wth the strftime() function, see the ESPHome documentation to 
 # format date and atime to your locale.
@@ -152,9 +159,11 @@ display:
       it.filled_rectangle(20, 20, 80, 80, id(ha_blue));
       it.filled_rectangle(20, 120, 80, 80, id(ha_blue));
       it.filled_rectangle(20, 220, 80, 80, id(ha_blue));
+      it.filled_rectangle(140, 120, 80, 80, id(ha_blue));
       it.print(60, 60, id(arimo84), TextAlign::CENTER, "A");
       it.print(60, 160, id(arimo84), TextAlign::CENTER, "B");
       it.print(60, 260, id(arimo84), TextAlign::CENTER, "C");
+      it.print(180, 160, id(arimo84), TextAlign::CENTER, "D");
 
 # Set up the xpt2046 touch platform
 touchscreen:
