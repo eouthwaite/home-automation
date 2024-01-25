@@ -65,11 +65,42 @@ wifi:
 
 captive_portal:
 
+# Set up some global variables for some values that we want to persist
+globals:
+  - id: wifi_iconstring
+    type: std::string
+    restore_value: no
+    initial_value: '"󰤮"'
+  - id: recent_touch
+    type: bool
+    restore_value: no
+    initial_value: "true"
+
 # ============================================================ 
 # ESPHome Display related setup
 #
-# Create a font to use, add and remove glyphs as needed. 
+# Create a font to use, add and remove glyphs as needed
+# The Material Design Icon font is going to be used to display wifi
+# state as well as displaying the lightbulb icons
 font:
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: mdi_large
+    size: 48
+    glyphs: [
+        "󰛨", # lightbulb-on
+        "󰹏", # lightbulb-off
+    ]
+  - file: "fonts/materialdesignicons-webfont.ttf"
+    id: mdi_medium
+    size: 24
+    glyphs: [
+        "󰤮", # no-wifi
+        "󰤫", # low-wifi
+        "󰤟", # wifi-1
+        "󰤢", # wifi-2
+        "󰤥", # wifi-3
+        "󰤨", # wifi-4
+    ]
   - file: 'fonts/Arimo-Regular.ttf'
     id: arimo84
     size: 84
@@ -89,6 +120,14 @@ light:
     name: Display Backlight
     id: backlight
     restore_mode: ALWAYS_ON
+# Set up the LED on the back and turn it off by default
+  - platform: rgb
+    name: LED
+    id: led
+    red: output_red
+    green: output_green
+    blue: output_blue
+    restore_mode: ALWAYS_OFF
 
 # Setup four binary sensors for the four areas for touch
 binary_sensor:
@@ -134,11 +173,63 @@ spi:
     mosi_pin: GPIO32
     miso_pin: GPIO39
 
-# Setup a pin to control the backlight
+# Setup a pin to control the backlight and channels for the red/green/blue of the LED on the back
 output:
   - platform: ledc
     pin: GPIO21
     id: backlight_pwm
+  - platform: ledc
+    id: output_red
+    pin: GPIO4
+    inverted: true
+  - platform: ledc
+    id: output_green
+    pin: GPIO16
+    inverted: true
+  - platform: ledc
+    id: output_blue
+    pin: GPIO17
+    inverted: true
+
+# Setup a script that can update the UI values independent of the display lambda
+# so that we're not trying to pull the WiFi signal strength every single frame
+script:
+  - id: update_ui_values
+    then:
+    - lambda: |-
+        if (isnan(id(wifi_signal_pct).state))
+            id(wifi_iconstring) = "󰤮"; // No-wifi
+        else if (id(wifi_signal_pct).state < 10)
+            id(wifi_iconstring) = "󰤟";  // low-wifi
+        else if (id(wifi_signal_pct).state < 30)
+            id(wifi_iconstring) = "󰤟"; // wifi-1
+        else if (id(wifi_signal_pct).state < 50)
+            id(wifi_iconstring) = "󰤢"; // wifi-2
+        else if (id(wifi_signal_pct).state < 75)
+            id(wifi_iconstring) = "󰤥"; // wifi-3
+        else
+            id(wifi_iconstring) = "󰤨"; // wifi-4
+
+# Update the UI state every 10 seconds
+interval:
+  - interval: 10s
+    then:
+      - script.execute: update_ui_values
+    # Every 30 seconds check to see if we had a recent touch and
+    # turn off the backlight if we haven't.  This does mean that it 
+    # can be up to 60 seconds until the backlight turns off
+  - interval: 30s
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return !id(recent_touch);
+          then: 
+            light.turn_off:
+              id: backlight
+          else:
+            - lambda: |-
+                id(recent_touch) = false;
 
 # Setup the ili9xxx platform
 #
@@ -164,6 +255,7 @@ display:
       it.print(60, 160, id(arimo84), TextAlign::CENTER, "B");
       it.print(60, 260, id(arimo84), TextAlign::CENTER, "C");
       it.print(180, 160, id(arimo84), TextAlign::CENTER, "D");
+      it.print(296, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
 # Set up the xpt2046 touch platform
 touchscreen:
@@ -179,3 +271,23 @@ touchscreen:
   calibration_y_max: 3860
   transform:
     swap_xy: false      
+# When the display is touched, turn on the backlight,
+# store that we had a recent touch, and update the UI
+  on_touch:
+      then:
+        - light.turn_on: backlight
+        - lambda: |-
+            id(recent_touch) = true;
+        - script.execute: update_ui_values
+
+# Wifi sensor that drives the UI signal strength icon
+sensor:
+  - platform: wifi_signal # Reports the WiFi signal strength in %
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    id: wifi_signal_pct
+    update_interval: 60s
+    entity_category: "diagnostic"
+    
