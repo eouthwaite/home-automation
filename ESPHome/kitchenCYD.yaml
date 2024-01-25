@@ -87,8 +87,9 @@ font:
     id: mdi_large
     size: 48
     glyphs: [
-        "󰛨", # lightbulb-on
-        "󰹏", # lightbulb-off
+        "󱟉", # cabinet-lights
+        "󱟐", # lamp-outline
+        "󱟑", # lamps-outline
     ]
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_medium
@@ -251,11 +252,11 @@ display:
       it.filled_rectangle(20, 120, 80, 80, id(ha_blue));
       it.filled_rectangle(20, 220, 80, 80, id(ha_blue));
       it.filled_rectangle(140, 120, 80, 80, id(ha_blue));
-      it.print(60, 60, id(arimo84), TextAlign::CENTER, "A");
-      it.print(60, 160, id(arimo84), TextAlign::CENTER, "B");
-      it.print(60, 260, id(arimo84), TextAlign::CENTER, "C");
+      it.print(60, 60, id(mdi_large), TextAlign::CENTER, "󱟉");
+      it.print(60, 160, id(mdi_large), TextAlign::CENTER, "󱟐");
+      it.print(60, 260, id(mdi_large), TextAlign::CENTER, "󱟑");
       it.print(180, 160, id(arimo84), TextAlign::CENTER, "D");
-      it.print(296, 0, id(mdi_medium), id(wifi_iconstring).c_str());
+      it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
 # Set up the xpt2046 touch platform
 touchscreen:
@@ -290,4 +291,3 @@ sensor:
     id: wifi_signal_pct
     update_interval: 60s
     entity_category: "diagnostic"
-    
