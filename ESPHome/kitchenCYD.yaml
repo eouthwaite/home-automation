@@ -71,9 +71,9 @@ captive_portal:
 # Create a font to use, add and remove glyphs as needed. 
 font:
   - file: 'fonts/Arimo-Regular.ttf'
-    id: arimo96
-    size: 96
-    glyphs: "AB"
+    id: arimo84
+    size: 84
+    glyphs: "ABC"
 
 # Create a Home Assistant blue color
 color:
@@ -95,16 +95,23 @@ binary_sensor:
   - platform: touchscreen
     name: Button A
     x_min: 20
-    x_max: 120
+    x_max: 100
     y_min: 20
-    y_max: 120
+    y_max: 100
 
   - platform: touchscreen
     name: Button B
     x_min: 20
-    x_max: 120
-    y_min: 140
-    y_max: 240
+    x_max: 100
+    y_min: 120
+    y_max: 200
+
+  - platform: touchscreen
+    name: Button C
+    x_min: 20
+    x_max: 100
+    y_min: 220
+    y_max: 300
 
 # ============================================================ 
 # Hardware related setup
@@ -142,10 +149,12 @@ display:
     rotation: 0
     lambda: |-
       it.fill(id(Color::BLACK));
-      it.filled_rectangle(20, 20, 100, 100, id(ha_blue));
-      it.filled_rectangle(20, 140, 100, 100, id(ha_blue));
-      it.print(70, 70, id(arimo96), TextAlign::CENTER, "A");
-      it.print(70, 190, id(arimo96), TextAlign::CENTER, "B");
+      it.filled_rectangle(20, 20, 80, 80, id(ha_blue));
+      it.filled_rectangle(20, 120, 80, 80, id(ha_blue));
+      it.filled_rectangle(20, 220, 80, 80, id(ha_blue));
+      it.print(60, 60, id(arimo84), TextAlign::CENTER, "A");
+      it.print(60, 160, id(arimo84), TextAlign::CENTER, "B");
+      it.print(60, 260, id(arimo84), TextAlign::CENTER, "C");
 
 # Set up the xpt2046 touch platform
 touchscreen:
