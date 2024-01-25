@@ -60,7 +60,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: $device_name Hotspot
+    ssid: $device_name Fallback
     password: !secret ap_password
 
 captive_portal:
@@ -95,16 +95,16 @@ binary_sensor:
   - platform: touchscreen
     name: Button A
     x_min: 20
-    x_max: 140
-    y_min: 60
-    y_max: 180
+    x_max: 120
+    y_min: 20
+    y_max: 120
 
   - platform: touchscreen
     name: Button B
-    x_min: 180
-    x_max: 300
-    y_min: 60
-    y_max: 180
+    x_min: 20
+    x_max: 120
+    y_min: 140
+    y_max: 240
 
 # ============================================================ 
 # Hardware related setup
@@ -139,11 +139,11 @@ display:
     spi_id: tft
     cs_pin: GPIO15
     dc_pin: GPIO2
-    rotation: 90
+    rotation: 0
     lambda: |-
       it.fill(id(Color::BLACK));
-      it.filled_rectangle(20, 60, 120, 120, id(ha_blue));
-      it.filled_rectangle(180, 60, 120, 120, id(ha_blue));
+      it.filled_rectangle(20, 20, 100, 100, id(ha_blue));
+      it.filled_rectangle(20, 140, 100, 100, id(ha_blue));
       it.print(70, 70, id(arimo96), TextAlign::CENTER, "A");
       it.print(70, 190, id(arimo96), TextAlign::CENTER, "B");
 
