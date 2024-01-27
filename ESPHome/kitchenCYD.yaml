@@ -90,6 +90,9 @@ font:
         "󱟉", # cabinet-lights
         "󱟐", # lamp-outline
         "󱟑", # lamps-outline
+        "󱟻", # garage locked
+        "󰡲", # garage alert
+        "󰮱", # next page
     ]
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_medium
@@ -101,11 +104,10 @@ font:
         "󰤢", # wifi-2
         "󰤥", # wifi-3
         "󰤨", # wifi-4
+        "󰪬", # Dishwasher
+        "󰜪", # Washing machine
+        "󱂙", # Dehumidifier
     ]
-  - file: 'fonts/Arimo-Regular.ttf'
-    id: arimo84
-    size: 84
-    glyphs: "ABCD"
 
 # Create a Home Assistant blue color
 color:
@@ -117,6 +119,12 @@ color:
 
   - id: off_blue
     hex: 346891
+
+  - id: lock_green
+    hex: 007517
+
+  - id: unlock_red
+    hex: fd3a37
 
 # ============================================================ 
 # Home Assistant related setup
@@ -179,6 +187,11 @@ binary_sensor:
   - platform: homeassistant
     id: livingroom_lights
     entity_id: switch.tasmota_4
+    internal: true
+
+  - platform: homeassistant
+    id: garage_door
+    entity_id: switch.up111_rtl_2_socket_1
     internal: true
 
 # ============================================================ 
@@ -269,7 +282,7 @@ display:
     rotation: 0
     lambda: |-
       it.fill(id(Color::BLACK));
-      it.filled_rectangle(140, 120, 80, 80, id(ha_blue));
+      it.filled_rectangle(140, 20, 80, 80, id(ha_blue));
       if (id(kitchen_cabinet_lights).state) {
         it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
       } else {
@@ -285,7 +298,12 @@ display:
       } else {
         it.print(60, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
       }
-      it.print(180, 160, id(arimo84), TextAlign::CENTER, "D");
+      it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
+      if (id(garage_door).state) {
+        it.print(180, 160, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
+      } else {
+        it.print(180, 160, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
+      }
       it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
 # Set up the xpt2046 touch platform
