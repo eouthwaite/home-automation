@@ -112,6 +112,12 @@ color:
   - id: ha_blue
     hex: 51c0f2
 
+  - id: on_yellow
+    hex: ffb930
+
+  - id: off_blue
+    hex: 346891
+
 # ============================================================ 
 # Home Assistant related setup
 #
@@ -159,6 +165,21 @@ binary_sensor:
     x_max: 220
     y_min: 120
     y_max: 200
+
+  - platform: homeassistant
+    id: kitchen_cabinet_lights
+    entity_id: switch.kitchen_cabinet_lights
+    internal: true
+
+  - platform: homeassistant
+    id: sideboard_lights
+    entity_id: switch.tasmota02
+    internal: true
+
+  - platform: homeassistant
+    id: livingroom_lights
+    entity_id: switch.tasmota_4
+    internal: true
 
 # ============================================================ 
 # Hardware related setup
@@ -216,10 +237,10 @@ interval:
   - interval: 10s
     then:
       - script.execute: update_ui_values
-    # Every 30 seconds check to see if we had a recent touch and
+    # Every 60 seconds check to see if we had a recent touch and
     # turn off the backlight if we haven't.  This does mean that it 
-    # can be up to 60 seconds until the backlight turns off
-  - interval: 30s
+    # can be up to 2 minutes until the backlight turns off
+  - interval: 60s
     then:
       - if:
           condition:
@@ -248,13 +269,22 @@ display:
     rotation: 0
     lambda: |-
       it.fill(id(Color::BLACK));
-      it.filled_rectangle(20, 20, 80, 80, id(ha_blue));
-      it.filled_rectangle(20, 120, 80, 80, id(ha_blue));
-      it.filled_rectangle(20, 220, 80, 80, id(ha_blue));
       it.filled_rectangle(140, 120, 80, 80, id(ha_blue));
-      it.print(60, 60, id(mdi_large), TextAlign::CENTER, "󱟉");
-      it.print(60, 160, id(mdi_large), TextAlign::CENTER, "󱟐");
-      it.print(60, 260, id(mdi_large), TextAlign::CENTER, "󱟑");
+      if (id(kitchen_cabinet_lights).state) {
+        it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
+      } else {
+        it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
+      }
+      if (id(sideboard_lights).state) {
+        it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟐");
+      } else {
+        it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
+      }
+      if (id(livingroom_lights).state) {
+        it.print(60, 260, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
+      } else {
+        it.print(60, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
+      }
       it.print(180, 160, id(arimo84), TextAlign::CENTER, "D");
       it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
