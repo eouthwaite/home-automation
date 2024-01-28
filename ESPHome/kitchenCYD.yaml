@@ -118,10 +118,10 @@ color:
     hex: ffb930
 
   - id: off_blue
-    hex: 346891
+    hex: 346a91
 
   - id: lock_green
-    hex: 007517
+    hex: 00751a
 
   - id: unlock_red
     hex: fd3a37
@@ -282,7 +282,10 @@ display:
     rotation: 0
     lambda: |-
       it.fill(id(Color::BLACK));
-      it.filled_rectangle(140, 20, 80, 80, id(ha_blue));
+      it.rectangle(20, 20, 80, 80, id(ha_blue));
+      it.rectangle(20, 120, 80, 80, id(ha_blue));
+      it.rectangle(20, 220, 80, 80, id(ha_blue));
+      it.rectangle(140, 20, 80, 80, id(ha_blue));
       if (id(kitchen_cabinet_lights).state) {
         it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
       } else {
@@ -293,16 +296,16 @@ display:
       } else {
         it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
       }
-      if (id(livingroom_lights).state) {
-        it.print(60, 260, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
+      if (id(garage_door).state) {
+        it.print(60, 260, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
       } else {
-        it.print(60, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
+        it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
       }
       it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
-      if (id(garage_door).state) {
-        it.print(180, 160, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
+      if (id(livingroom_lights).state) {
+        it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
       } else {
-        it.print(180, 160, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
+        it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
       }
       it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
