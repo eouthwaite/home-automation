@@ -93,6 +93,8 @@ font:
         "󱟻", # garage locked
         "󰡲", # garage alert
         "󰮱", # next page
+        "󰪬", # Dishwasher
+        "󰜪", # Washing machine
     ]
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_medium
@@ -104,8 +106,6 @@ font:
         "󰤢", # wifi-2
         "󰤥", # wifi-3
         "󰤨", # wifi-4
-        "󰪬", # Dishwasher
-        "󰜪", # Washing machine
         "󱂙", # Dehumidifier
     ]
 
@@ -174,6 +174,16 @@ binary_sensor:
     y_min: 120
     y_max: 200
 
+  - platform: touchscreen
+    name: Button S
+    x_min: 140
+    x_max: 220
+    y_min: 20
+    y_max: 100
+    on_press:
+      - display.page.show_previous: esp_display
+      - component.update: esp_display
+
   - platform: homeassistant
     id: kitchen_cabinet_lights
     entity_id: switch.kitchen_cabinet_lights
@@ -185,13 +195,23 @@ binary_sensor:
     internal: true
 
   - platform: homeassistant
-    id: livingroom_lights
-    entity_id: switch.tasmota_4
+    id: garage_door
+    entity_id: switch.up111_rtl_2_socket_1
     internal: true
 
   - platform: homeassistant
-    id: garage_door
-    entity_id: switch.up111_rtl_2_socket_1
+    id: dishwasher
+    entity_id: binary_sensor.dishwasher
+    internal: true
+
+  - platform: homeassistant
+    id: washing_machine
+    entity_id: binary_sensor.washing_machine
+    internal: true
+
+  - platform: homeassistant
+    id: livingroom_lights
+    entity_id: switch.tasmota_4
     internal: true
 
 # ============================================================ 
@@ -260,8 +280,9 @@ interval:
             - lambda: |-
                 return !id(recent_touch);
           then: 
-            light.turn_off:
-              id: backlight
+            - light.turn_off:
+                id: backlight
+            - display.page.show: page1
           else:
             - lambda: |-
                 id(recent_touch) = false;
@@ -275,39 +296,81 @@ interval:
 #
 display:
   - platform: ili9xxx
+    id: esp_display
     model: ili9341
     spi_id: tft
     cs_pin: GPIO15
     dc_pin: GPIO2
     rotation: 0
-    lambda: |-
-      it.fill(id(Color::BLACK));
-      it.rectangle(20, 20, 80, 80, id(ha_blue));
-      it.rectangle(20, 120, 80, 80, id(ha_blue));
-      it.rectangle(20, 220, 80, 80, id(ha_blue));
-      it.rectangle(140, 20, 80, 80, id(ha_blue));
-      if (id(kitchen_cabinet_lights).state) {
-        it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
-      } else {
-        it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
-      }
-      if (id(sideboard_lights).state) {
-        it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟐");
-      } else {
-        it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
-      }
-      if (id(garage_door).state) {
-        it.print(60, 260, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
-      } else {
-        it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
-      }
-      it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
-      if (id(livingroom_lights).state) {
-        it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
-      } else {
-        it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
-      }
-      it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
+    pages:
+      - id: page1
+        lambda: |-
+          it.fill(id(Color::BLACK));
+          it.rectangle(20, 20, 80, 80, id(ha_blue));
+          it.rectangle(20, 120, 80, 80, id(ha_blue));
+          it.rectangle(20, 220, 80, 80, id(ha_blue));
+          it.rectangle(140, 20, 80, 80, id(ha_blue));
+          if (id(kitchen_cabinet_lights).state) {
+            it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
+          } else {
+            it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
+          }
+          if (id(sideboard_lights).state) {
+            it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟐");
+          } else {
+            it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
+          }
+          if (id(garage_door).state) {
+            it.print(60, 260, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
+          } else {
+            it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
+          }
+          it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
+          if (id(dishwasher).state) {
+            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰪬");
+          } else {
+            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰪬");
+          }
+          if (id(washing_machine).state) {
+            it.print(180, 260, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰜪");
+          } else {
+            it.print(180, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰜪");
+          }
+          it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
+      - id: page2
+        lambda: |-
+          it.fill(id(Color::BLACK));
+          it.rectangle(20, 20, 80, 80, id(ha_blue));
+          it.rectangle(20, 120, 80, 80, id(ha_blue));
+          it.rectangle(20, 220, 80, 80, id(ha_blue));
+          it.rectangle(140, 20, 80, 80, id(ha_blue));
+          if (id(livingroom_lights).state) {
+            it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
+          } else {
+            it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
+          }
+          if (id(kitchen_cabinet_lights).state) {
+            it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
+          } else {
+            it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
+          }
+          if (id(sideboard_lights).state) {
+            it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟐");
+          } else {
+            it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
+          }
+          if (id(garage_door).state) {
+            it.print(60, 260, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
+          } else {
+            it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
+          }
+          it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
+          if (id(livingroom_lights).state) {
+            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
+          } else {
+            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
+          }
+          it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
 # Set up the xpt2046 touch platform
 touchscreen:
