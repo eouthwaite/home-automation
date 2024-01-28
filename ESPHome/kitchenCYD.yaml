@@ -95,6 +95,9 @@ font:
         "󰮱", # next page
         "󰪬", # Dishwasher
         "󰜪", # Washing machine
+#        "󱂙", # Dehumidifier
+        "󱨯", # Bulkhead light
+        "󱣞", # Ceiling light
     ]
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_medium
@@ -106,8 +109,11 @@ font:
         "󰤢", # wifi-2
         "󰤥", # wifi-3
         "󰤨", # wifi-4
-        "󱂙", # Dehumidifier
     ]
+  - file: 'fonts/Arimo-Regular.ttf'
+    id: arimo24
+    size: 24
+    glyphs: " .,°0123456789C"
 
 # Create a Home Assistant blue color
 color:
@@ -178,11 +184,24 @@ binary_sensor:
     name: Button S
     x_min: 140
     x_max: 220
-    y_min: 20
-    y_max: 100
+    y_min: 220
+    y_max: 300
     on_press:
       - display.page.show_previous: esp_display
       - component.update: esp_display
+
+#  - platform: template
+#    name: "Main Page"
+#    lambda: |-
+#      - if:
+#        condition:
+#          display.is_displaying_page:
+#            id: esp_display
+#            page_id: page1
+#        then
+#          return true;
+#        else
+#          return false;
 
   - platform: homeassistant
     id: kitchen_cabinet_lights
@@ -212,6 +231,16 @@ binary_sensor:
   - platform: homeassistant
     id: livingroom_lights
     entity_id: switch.tasmota_4
+    internal: true
+
+  - platform: homeassistant
+    id: outside_lights
+    entity_id: switch.summer_house_lights_switch_2
+    internal: true
+
+  - platform: homeassistant
+    id: summer_house_lights
+    entity_id: switch.summer_house_lights_switch_1
     internal: true
 
 # ============================================================ 
@@ -309,7 +338,7 @@ display:
           it.rectangle(20, 20, 80, 80, id(ha_blue));
           it.rectangle(20, 120, 80, 80, id(ha_blue));
           it.rectangle(20, 220, 80, 80, id(ha_blue));
-          it.rectangle(140, 20, 80, 80, id(ha_blue));
+          it.rectangle(140, 220, 80, 80, id(ha_blue));
           if (id(kitchen_cabinet_lights).state) {
             it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
           } else {
@@ -325,17 +354,17 @@ display:
           } else {
             it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
           }
-          it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
           if (id(dishwasher).state) {
-            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰪬");
+            it.print(180, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰪬");
           } else {
-            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰪬");
+            it.print(180, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰪬");
           }
           if (id(washing_machine).state) {
-            it.print(180, 260, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰜪");
+            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰜪");
           } else {
-            it.print(180, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰜪");
+            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰜪");
           }
+          it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
       - id: page2
         lambda: |-
@@ -343,33 +372,32 @@ display:
           it.rectangle(20, 20, 80, 80, id(ha_blue));
           it.rectangle(20, 120, 80, 80, id(ha_blue));
           it.rectangle(20, 220, 80, 80, id(ha_blue));
-          it.rectangle(140, 20, 80, 80, id(ha_blue));
+          it.rectangle(140, 120, 80, 80, id(ha_blue));
+          it.rectangle(140, 220, 80, 80, id(ha_blue));
           if (id(livingroom_lights).state) {
             it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
           } else {
             it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
           }
+          if (id(outside_lights).state) {
+            it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱨯");
+          } else {
+            it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱨯");
+          }
+          if (id(summer_house_lights).state) {
+            it.print(60, 260, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱣞");
+          } else {
+            it.print(60, 260, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱣞");
+          }
+          if (id(summer_house_temperature).has_state()) {
+            it.printf(180, 45, id(arimo24), TextAlign::TOP_CENTER, "%.1f °C", id(summer_house_temperature).state);
+          }
           if (id(kitchen_cabinet_lights).state) {
-            it.print(60, 60, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
+            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
           } else {
-            it.print(60, 60, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
+            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
           }
-          if (id(sideboard_lights).state) {
-            it.print(60, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟐");
-          } else {
-            it.print(60, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟐");
-          }
-          if (id(garage_door).state) {
-            it.print(60, 260, id(mdi_large), id(unlock_red), TextAlign::CENTER, "󰡲");
-          } else {
-            it.print(60, 260, id(mdi_large), id(lock_green), TextAlign::CENTER, "󱟻");
-          }
-          it.print(180, 60, id(mdi_large), TextAlign::CENTER, "󰮱");
-          if (id(livingroom_lights).state) {
-            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟑");
-          } else {
-            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟑");
-          }
+          it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
 
 # Set up the xpt2046 touch platform
@@ -405,3 +433,9 @@ sensor:
     id: wifi_signal_pct
     update_interval: 60s
     entity_category: "diagnostic"
+
+  - platform: homeassistant
+    id: summer_house_temperature
+    entity_id: sensor.t_h_sensor_temperature
+    internal: true
+
