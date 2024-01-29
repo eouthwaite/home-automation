@@ -75,6 +75,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "true"
+  - id: main_page
+    type: bool
+    restore_value: no
+    initial_value: "true"
 
 # ============================================================ 
 # ESPHome Display related setup
@@ -98,6 +102,8 @@ font:
 #        "󱂙", # Dehumidifier
         "󱨯", # Bulkhead light
         "󱣞", # Ceiling light
+        "󰔛", # Timer
+        "󰔞", # Timer off
     ]
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_medium
@@ -151,6 +157,8 @@ light:
     restore_mode: ALWAYS_OFF
 
 # Setup four binary sensors for the four areas for touch
+#  A-C are left side top to bottom
+#  D and S right side middle and bottom
 binary_sensor:
   - platform: touchscreen
     name: Button A
@@ -173,6 +181,7 @@ binary_sensor:
     y_min: 220
     y_max: 300
 
+  # button D is only used by the Living Room screen
   - platform: touchscreen
     name: Button D
     x_min: 140
@@ -180,6 +189,7 @@ binary_sensor:
     y_min: 120
     y_max: 200
 
+# turn page
   - platform: touchscreen
     name: Button S
     x_min: 140
@@ -190,18 +200,10 @@ binary_sensor:
       - display.page.show_previous: esp_display
       - component.update: esp_display
 
-#  - platform: template
-#    name: "Main Page"
-#    lambda: |-
-#      - if:
-#        condition:
-#          display.is_displaying_page:
-#            id: esp_display
-#            page_id: page1
-#        then
-#          return true;
-#        else
-#          return false;
+# possibly a better way exists, but this tracks the state of the main_page variable
+  - platform: template
+    name: "Main Page"
+    lambda: return id(main_page);
 
   - platform: homeassistant
     id: kitchen_cabinet_lights
@@ -241,6 +243,11 @@ binary_sensor:
   - platform: homeassistant
     id: summer_house_lights
     entity_id: switch.summer_house_lights_switch_1
+    internal: true
+
+  - platform: homeassistant
+    id: garden_timer_enable
+    entity_id: input_boolean.garden_timer_enable
     internal: true
 
 # ============================================================ 
@@ -366,6 +373,7 @@ display:
           }
           it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
+          id(main_page) = false;
       - id: page2
         lambda: |-
           it.fill(id(Color::BLACK));
@@ -392,13 +400,14 @@ display:
           if (id(summer_house_temperature).has_state()) {
             it.printf(180, 45, id(arimo24), TextAlign::TOP_CENTER, "%.1f °C", id(summer_house_temperature).state);
           }
-          if (id(kitchen_cabinet_lights).state) {
-            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󱟉");
+          if (id(garden_timer_enable).state) {
+            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󰔛");
           } else {
-            it.print(180, 160, id(mdi_large), id(off_blue), TextAlign::CENTER, "󱟉");
+            it.print(180, 160, id(mdi_large), id(on_yellow), TextAlign::CENTER, "󰔞");
           }
           it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
+          id(main_page) = true;
 
 # Set up the xpt2046 touch platform
 touchscreen:
