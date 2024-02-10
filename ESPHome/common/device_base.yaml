@@ -1,0 +1,31 @@
+# NOTE:
+# In order for this to work you need to add the following settings in your secrets.yaml file:
+# - ota_password
+# - wifi_ssid
+# - wifi_password
+# - ap_password
+#
+# ============================================================ 
+# Standard ESPHome setup
+#
+# ESPHome naming
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+ 
+# Enable logging
+logger:
+
+# Set OTA password
+ota:
+  password: !secret ota_password
+
+# Setup WiFi credentials
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ${device_name} Fallback
+    password: !secret ap_password
