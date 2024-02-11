@@ -1,21 +1,10 @@
 #
-# Basic yaml code to get the ESP32-2432S028R display to work in ESPHome.
-#
-# This yaml displays four rectangles acting as binary touch sensors inside of Home Assistant.
-#
-# Originally written by Jonny Bergdahl
-# - [GitHub](https://github.com/jonnybergdahl)
-# - [Twitter](https://twitter.com/jonnybergdahl)
-# - [YouTube](https://www.youtube.com/jonnybergdahl)
+# Specific set up for Living Room CYD
 #
 # ============================================================ 
 # NOTE:
 # In order for this to work you need to add the following settings in your secrets.yaml file:
-# - api_key
-# - ota_password
-# - wifi_ssid
-# - wifi_password
-# - ap_password
+# - lroom_api_key
 #
 # Create a folder named fonts in your ESPHome folder, and copy the file fonts/Arimo-Regular.ttf there.
 #
@@ -26,7 +15,7 @@
 substitutions:
   device_name: esphome-web-abbb34
   friendly_name: Living Room CYD
-  base_page: page2
+#  base_page: page2
 
 # ============================================================ 
 packages:
@@ -40,3 +29,26 @@ api:
   encryption:
     key: !secret lroom_api_key
 
+# Update the UI state every 10 seconds
+interval:
+  - interval: 10s
+    then:
+      - script.execute: update_ui_values
+    # Every 60 seconds check to see if we had a recent touch and
+    # turn off the backlight if we haven't.  This does mean that it 
+    # can be up to 2 minutes until the backlight turns off
+  - interval: 60s
+    then:
+      - if:
+          condition:
+            - lambda: |-
+                return !id(recent_touch);
+          then: 
+            - light.turn_off:
+                id: backlight
+            - display.page.show: page2
+            # How to make this work?:
+            # - display.page.show: ${base_page}
+          else:
+            - lambda: |-
+                id(recent_touch) = false;

@@ -7,17 +7,9 @@
 # - [YouTube](https://www.youtube.com/jonnybergdahl)
 #
 # ============================================================ 
-# NOTE:
-# In order for this to work you need to add the following settings in your secrets.yaml file:
-# - api_key
-# - ota_password
-# - wifi_ssid
-# - wifi_password
-# - ap_password
 #
 # Create a folder named fonts in your ESPHome folder, and copy the file fonts/Arimo-Regular.ttf there.
 #
-
 # ============================================================  
 # The ESP32-2432S028R uses a standard ESP32-WROVER, so we use the esp32dev defintion
 esp32:
@@ -40,14 +32,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "true"
-  - id: main_page
+  - id: kitchen_page
     type: bool
     restore_value: no
     initial_value: "true"
-  - id: base_page
-    type: std::string
-    restore_value: no
-    initial_value: ${base_page}
 
 # ============================================================ 
 # ESPHome Display related setup
@@ -169,10 +157,10 @@ binary_sensor:
       - display.page.show_previous: esp_display
       - component.update: esp_display
 
-# possibly a better way exists, but this tracks the state of the main_page variable
+# possibly a better way exists to track which page is displayed, but this tracks the state of the kitchen_page variable
   - platform: template
-    name: "Main Page"
-    lambda: return id(main_page);
+    name: "Kitchen Page"
+    lambda: return id(kitchen_page);
 
   - platform: homeassistant
     id: kitchen_cabinet_lights
@@ -270,28 +258,6 @@ script:
         else
             id(wifi_iconstring) = "󰤨"; // wifi-4
 
-# Update the UI state every 10 seconds
-interval:
-  - interval: 10s
-    then:
-      - script.execute: update_ui_values
-    # Every 60 seconds check to see if we had a recent touch and
-    # turn off the backlight if we haven't.  This does mean that it 
-    # can be up to 2 minutes until the backlight turns off
-  - interval: 60s
-    then:
-      - if:
-          condition:
-            - lambda: |-
-                return !id(recent_touch);
-          then: 
-            - light.turn_off:
-                id: backlight
-            - display.page.show: ${base_page}
-          else:
-            - lambda: |-
-                id(recent_touch) = false;
-
 # Setup the ili9xxx platform
 #
 # Display is used as 240x320 by default - no need to rotate it to 90°
@@ -342,11 +308,7 @@ display:
           }
           it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
-          if (base_page == "page1") {
-            id(main_page) = true;
-          } else {
-            id(main_page) = false;
-          }
+          id(kitchen_page) = true;
       - id: page2
         lambda: |-
           it.fill(id(Color::BLACK));
@@ -380,12 +342,7 @@ display:
           }
           it.print(180, 260, id(mdi_large), TextAlign::CENTER, "󰮱");
           it.print(216, 0, id(mdi_medium), id(wifi_iconstring).c_str());
-          if (base_page == "page2") {
-            id(main_page) = true;
-          } else {
-            id(main_page) = false;
-          }
-
+          id(kitchen_page) = false;
 
 # Set up the xpt2046 touch platform
 touchscreen:
