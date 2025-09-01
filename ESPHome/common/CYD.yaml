@@ -272,6 +272,7 @@ display:
     spi_id: tft
     cs_pin: GPIO15
     dc_pin: GPIO2
+    color_palette: 8BIT
     invert_colors: false
     rotation: 0
     pages:
@@ -354,12 +355,13 @@ touchscreen:
   update_interval: 50ms
   threshold: 400
   calibration:
-    x_min: 3860
-    x_max: 280
+    x_min: 280
+    x_max: 3860
     y_min: 340
     y_max: 3860
   transform:
-    swap_xy: false      
+    swap_xy: false 
+    mirror_x: true      
 # When the display is touched, turn on the backlight,
 # store that we had a recent touch, and update the UI
   on_touch:
